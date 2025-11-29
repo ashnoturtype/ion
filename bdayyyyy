@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Birthday Hologram Experience</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: 'Poppins', sans-serif;
+        background: black;
+        color: white;
+        transition: background 1s;
+    }
+
+    .center {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index: 10;
+    }
+
+    .button {
+        padding: 12px 25px;
+        font-size: 1.4rem;
+        cursor: pointer;
+        border: none;
+        border-radius: 10px;
+        background: #00eaff;
+        color: black;
+        margin: 10px;
+        transition: 0.2s;
+    }
+    .button:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0 20px #00eaff;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    /* HOLOGRAM EFFECT */
+    .holo {
+        filter: drop-shadow(0 0 20px cyan) drop-shadow(0 0 50px #00ffff);
+        animation: flicker 2s infinite ease-in-out;
+    }
+    @keyframes flicker {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+
+    /* FLOATING ANIMATION */
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+        100% { transform: translateY(0); }
+    }
+
+    .floating {
+        animation: float 3s infinite ease-in-out;
+    }
+
+    /* CONFETTI */
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+
+    /* 3D CAKE */
+    .cake {
+        position: relative;
+        width: 300px;
+        height: 200px;
+        margin: 0 auto;
+        perspective: 1000px;
+    }
+    .cake-layer {
+        position: absolute;
+        width: 100%;
+        height: 50px;
+        background: linear-gradient(to bottom, #d2691e, #8b4513);
+        border-radius: 10px;
+        box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        transform: rotateX(10deg);
+    }
+    .frosting {
+        position: absolute;
+        top: -20px;
+        width: 100%;
+        height: 30px;
+        background: linear-gradient(to bottom, #fff, #f0f0f0);
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    }
+    .candle {
+        position: absolute;
+        width: 8px;
+        height: 40px;
+        background: yellow;
+        top: -60px;
+        border-radius: 4px;
+        animation: flicker 1s infinite;
+        transform: rotateX(10deg);
+    }
+    .candle.blown {
+        background: gray;
+        animation: none;
+    }
+
+    /* 3D FLOATING BALLOONS */
+    .balloon {
+        position: absolute;
+        width: 50px;
+        height: 70px;
+        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3), inset 0 0 10px rgba(255,255,255,0.5);
+        animation: float 4s infinite ease-in-out, sway 3s infinite ease-in-out, rotate3d 5s infinite linear;
+        transform-style: preserve-3d;
+    }
+    @keyframes sway {
+        0%, 100% { transform: translateX(0); }
+        50% { transform: translateX(10px); }
+    }
+    @keyframes rotate3d {
+        0% { transform: rotateY(0deg); }
+        100% { transform: rotateY(360deg); }
+    }
+
+    /* WISH CARDS - Spread and Moving */
+    .wish-card {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.9);
+        color: black;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 1rem;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        animation: floatAround 8s infinite linear, fadeOut 10s forwards;
+        z-index: 5;
+    }
+    @keyframes floatAround {
+        0% { transform: translate(0, 0); }
+        25% { transform: translate(100px, -50px); }
+        50% { transform: translate(200px, 0); }
+        75% { transform: translate(100px, 50px); }
+        100% { transform: translate(0, 0); }
+    }
+    @keyframes fadeOut {
+        0% { opacity: 1; }
+        100% { opacity: 0; }
+    }
+
+    /* BIRTHDAY CARD */
+    .card {
+        background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+        padding: 40px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        max-width: 500px;
+        margin: 0 auto;
+        font-size: 1.5rem;
+        color: white;
+        line-height: 1.6;
+    }
+
+    /* BOTTOM CARD BUTTON */
+    #cardButton {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 20;
+        font-size: 1.6rem;
+        padding: 15px 30px;
+        box-shadow: 0 0 30px #00eaff;
+        animation: glow 2s infinite;
+    }
+    @keyframes glow {
+        0%, 100% { box-shadow: 0 0 30px #00eaff; }
+        50% { box-shadow: 0 0 50px #00eaff; }
+    }
+
+    /* HAPPY BIRTHDAY BANNER */
+    #birthdayBanner {
+        position: fixed;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 15;
+        font-size: 3rem;
+        text-align: center;
+        color: white;
+        filter: drop-shadow(0 0 30px cyan) drop-shadow(0 0 60px #00ffff);
+        animation: flicker 2s infinite ease-in-out, shine 3s infinite;
+    }
+    @keyframes shine {
+        0%, 100% { text-shadow: 0 0 20px #00eaff; }
+        50% { text-shadow: 0 0 40px #00eaff; }
+    }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<!-- Step 0: Starting Birthday Message -->
+<div id="start" class="center">
+    <h1 class="holo" style="font-size:4rem;">ITS UR BIRTHDAY</h1>
+    <button class="button" onclick="letsGo()">Lets Go</button>
+</div>
+
+<!-- Step 1: Surprise Question -->
+<div id="step1" class="center hidden">
+    <h1 class="holo">I have a surprise for you! Do you wanna proceed further?</h1>
+    <button class="button" onclick="proceedYes()">Yes</button>
+    <button class="button" onclick="proceedNo()">No</button>
+</div>
+
+<!-- Step 1.5: Forced Yes -->
+<div id="forcedYes" class="center hidden">
+    <h1 class="holo">Haww you have to click yesss ok</h1>
+    <button class="button" onclick="proceedYes()">Yes</button>
+</div>
+
+<!-- Step 2: Age Input -->
+<div id="ageInput" class="center hidden">
+    <h1 class="holo">Enter your age:</h1>
+    <input type="number" id="age" min="1" max="100" />
+    <button class="button" onclick="showCake()">Submit</button>
+</div>
+
+<!-- Step 3: Cake with Candles -->
+<div id="cakeSection" class="center hidden">
+    <div class="cake">
+        <div class="frosting"></div>
+        <div class="cake-layer"></div>
+        <div id="candles"></div>
+    </div>
+    <button class="button" onclick="afterCake()">Next</button>
+</div>
+
+<!-- Step 4: Black Background with Lights -->
+<div id="lightsOff" class="center hidden" style="background: black;">
+    <button class="button" onclick="turnOnLights()">Turn on the Lights</button>
+</div>
+
+<!-- Step 5: Celebration -->
+<div id="celebration" class="center hidden">
+    <h1 id="birthdayBanner" class="holo">HAPPY BIRTHDAY! 🎉</h1>
+    <div id="balloons"></div>
+    <div id="wish-cards"></div>
+    <button id="cardButton" class="button" onclick="showCard()">Click here to read the birthday card</button>
+</div>
+
+<!-- Step 6: Birthday Card -->
+<div id="birthdayCard" class="center hidden">
+    <div class="card">
+        <h2>Happy Birthday Dude!</h2>
+        <p>You are the best! Stay blessed. Lots of love for you.</p>
+    </div>
+</div>
+
+<audio id="music" src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3" loop></audio> <!-- Placeholder for TS music; replace with direct MP3 if available -->
+
+<script>
+let age = 0;
+
+function letsGo() {
+    document.getElementById("start").classList.add("hidden");
+    document.getElementById("step1").classList.remove("hidden");
+}
+
+function proceedYes() {
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("forcedYes").classList.add("hidden");
+    document.getElementById("ageInput").classList.remove("hidden");
+}
+
+function proceedNo() {
+    document.getElementById("step1").classList.add("hidden");
+    document.getElementById("forcedYes").classList.remove("hidden");
+}
+
+function showCake() {
+    age = parseInt(document.getElementById("age").value) || 1;
+    document.getElementById("ageInput").classList.add("hidden");
+    document.getElementById("cakeSection").classList.remove("hidden");
+    playMusic();
+    generateCandles();
+}
+
+function generateCandles() {
+    const candlesDiv = document.getElementById("candles");
+    candlesDiv.innerHTML = '';
+    const maxCandles = age; // Exact age, no cap
+    for (let i = 0; i < maxCandles; i++) {
+        const candle = document.createElement("div");
+        candle.className = "candle";
+        candle.style.left = `${10 + (i % 10) * 25}px`; // Arrange in rows of 10
+        candle.style.top = `${-60 - Math.floor(i / 10) * 10}px`;
+        candle.innerHTML = `<button class="button" style="font-size:0.6rem; padding:3px; position:absolute; top:45px;" onclick="blowCandle(${i})">Blow</button>`;
+        candlesDiv.appendChild(candle);
+    }
+}
+
+function blowCandle(index) {
+    const candles = document.querySelectorAll(".candle");
+    candles[index].classList.add("blown");
+}
+
+function afterCake() {
+    document.getElementById("cakeSection").classList.add("hidden");
+    document.getElementById("lightsOff").classList.remove("hidden");
+}
+
+function turnOnLights() {
+    document.body.style.background = "linear-gradient(45deg, #ff6b6b, #4ecdc4)";
+    document.getElementById("lightsOff").classList.add("hidden");
+    document.getElementById("celebration").classList.remove("hidden");
+    generateBalloons();
+    generateWishCards();
+}
+
+function generateBalloons() {
+    const balloonsDiv = document.getElementById("balloons");
+    for (let i = 0; i < 50; i++) {
+        const balloon = document.createElement("div");
+        balloon.className = "balloon";
+        balloon.style.background = `hsl(${Math.random()*360}, 100%, 50%)`;
+        balloon.style.left = `${Math.random() * 100}%`;
+        balloon.style.top = `${Math.random() * 100}%`;
+        balloon.style.animationDelay = `${Math.random() * 2}s`;
+        balloon.style.animationDuration = `${3 + Math.random() * 2}s`;
+        balloonsDiv.appendChild(balloon);
+    }
+}
+
+function generateWishCards() {
+    const wishes = ["Have a dope birthday!", "Treat when?", "May this year bring happiness!", "You are the best!"];
+    const cardsDiv = document.getElementById("wish-cards");
+    for (let i = 0; i < 10; i++) {
+        const card = document.createElement("div");
+        card.className = "wish-card";
+        card.textContent = wishes[Math.floor(Math.random() * wishes.length)];
+        card.style.left = `${Math.random() * 90}%`;
+        card.style.top = `${Math.random() * 90}%`;
+        card.style.animationDelay = `${Math.random() * 5}s`;
+        cardsDiv.appendChild(card);
+    }
+}
+
+function showCard() {
+    document.getElementById("celebration").classList.add("hidden");
+    document.getElementById("birthdayCard").classList.remove("hidden");
+}
+
+function playMusic() {
+    const audio = document.getElementById("music");
+    audio.play();
+}
+
+/* CONFETTI SYSTEM - Increased to 1000 pieces */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const confettiPieces = [];
+for (let i = 0; i < 1000; i++) {
+    confettiPieces.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        size: Math.random() * 8 + 3,
+        speed: Math.random() * 3 + 1,
+        color: `hsl(${Math.random()*360}, 100%, 50%)`
+    });
+}
+
+function drawConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiPieces.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+        p.y += p.speed;
+        if (p.y > canvas.height) p.y = -10;
+    });
+    requestAnimationFrame(drawConfetti);
+}
+
+drawConfetti();
+</script>
+
+</body>
+</html>
